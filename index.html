@@ -98,7 +98,6 @@ const ALL_SCENARIOS = [
       "https://picsum.photos/seed/sea2/1200/1600",
       "https://picsum.photos/seed/sea3/1200/1600"
   ]},
-  // можно добавлять сколько угодно
 ];
 /* ================================================ */
 
@@ -110,23 +109,7 @@ const detailTitle = document.getElementById('detailTitle');
 const detailCaption = document.getElementById('detailCaption');
 const pager = document.getElementById('pager');
 
-let chosenList = [];
-let currentScenarioIndex = 0;
-let slideIndex = 0;
-let slideshowTimer = null;
-
-/* Utility: pick N random distinct elements */
-function pickRandom(arr, n){
-  const out = [];
-  const copy = arr.slice();
-  while(out.length < n && copy.length){
-    const i = Math.floor(Math.random() * copy.length);
-    out.push(copy.splice(i,1)[0]);
-  }
-  return out;
-}
-
-/* Render main grid (4 random scenarios) — updated to keep global indices */
+/* single set of state variables (no duplicates) */
 let chosenListIndices = [];  // глобальные индексы в ALL_SCENARIOS
 let chosenList = [];
 let currentGlobalIndex = null;
@@ -148,7 +131,8 @@ function pickRandomIndices(arrLength, n){
 /* Render main grid (4 random scenarios) */
 function renderMain(){
   grid.innerHTML = '';
-  chosenListIndices = pickRandomIndices(ALL_SCENARIOS.length, 4);
+  const take = Math.min(4, ALL_SCENARIOS.length);
+  chosenListIndices = pickRandomIndices(ALL_SCENARIOS.length, take);
   chosenList = chosenListIndices.map(i => ALL_SCENARIOS[i]);
 
   chosenList.forEach((sc, localIdx) => {
@@ -180,11 +164,10 @@ function renderMain(){
   });
 }
 
-/* Open detail for index idx (index within chosenList) */
+/* Open detail for local index */
 function openDetail(localIdx){
   currentScenarioIndex = localIdx;
   slideIndex = 0;
-  // получаем глобальный индекс
   currentGlobalIndex = chosenListIndices[localIdx];
   const sc = chosenList[localIdx];
   detailTitle.textContent = sc.title;
@@ -202,8 +185,6 @@ function backToMain(){
   stopSlideshow();
   detailView.classList.remove('active');
   mainView.style.display = '';
-  // re-render main to randomize scenarios if you want
-  // renderMain();
 }
 
 /* Slideshow */
@@ -237,46 +218,41 @@ function stopSlideshow(){
 
 /* Hook UI buttons */
 document.getElementById('detailBack').addEventListener('click', backToMain);
-document.getElementById('prevBtn').addEventListener('click', ()=>{
-  stopSlideshow(); prevSlide(); startSlideshow();
-});
-document.getElementById('nextBtn').addEventListener('click', ()=>{
-  stopSlideshow(); nextSlide(); startSlideshow();
-});
+document.getElementById('prevBtn').addEventListener('click', ()=>{ stopSlideshow(); prevSlide(); startSlideshow(); });
+document.getElementById('nextBtn').addEventListener('click', ()=>{ stopSlideshow(); nextSlide(); startSlideshow(); });
 
 /* Rent button: send data to bot via Telegram.WebApp.sendData (full payload + global idx) */
 document.getElementById('rentBtn').addEventListener('click', ()=>{
   const sc = chosenList[currentScenarioIndex];
   const payloadObj = {
     action: "rent",
-    scenario_idx: currentGlobalIndex,   // ГЛОБАЛЬНЫЙ индекс из ALL_SCENARIOS
+    scenario_idx: currentGlobalIndex,
     scenario: {
       title: sc.title,
       short: sc.short,
       caption: sc.caption,
-      images: sc.images,
-      // сюда можно добавить дополнительные поля, если нужно
+      images: sc.images
     }
   };
   const payloadStr = JSON.stringify(payloadObj);
-  if(window.Telegram && Telegram.WebApp && Telegram.WebApp.sendData){
-    Telegram.WebApp.sendData(payloadStr);
-    // Закрываем WebApp — пользователь возвращается в чат, бот получит web_app_data
-    try{ Telegram.WebApp.close(); }catch(e){}
+  if(window.Telegram && Telegram.WebApp && typeof Telegram.WebApp.sendData === 'function'){
+    try{
+      Telegram.WebApp.sendData(payloadStr);
+      Telegram.WebApp.close();
+    }catch(e){
+      console.error("Telegram WebApp error:", e);
+      alert("Отправка в бота не удалась: " + e.message);
+    }
   } else {
-    alert("Арендовать: " + payloadStr);
+    alert("Арендовать (локально): " + payloadStr);
   }
 });
+
 /* Init Telegram WebApp if available */
 if(window.Telegram && Telegram.WebApp){
   try{ Telegram.WebApp.expand(); }catch(e){}
   try{ Telegram.WebApp.MainButton.hide(); }catch(e){}
 }
-
-/* Touch UX: tap on overlay region toggles overlay on small screens */
-document.addEventListener('touchstart', function(ev){
-  // if touch on a card, let click handler manage showing overlay
-}, {passive:true});
 
 /* Init page */
 renderMain();
