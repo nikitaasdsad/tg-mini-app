@@ -3,120 +3,324 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Готовые сценарии — мини-апп</title>
+<title>Готовые решения — мини-апп</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 <style>
-  :root{--bg:#0f1113;--card:#121316;--muted:#bfc7cd;--accent:#2EA44F}
-  body{margin:18px;font-family:Inter,Arial;background:var(--bg);color:#fff}
-  .wrap{max-width:720px;margin:0 auto}
+  :root{
+    --bg:#0f1113;
+    --card:#121316;
+    --muted:#bfc7cd;
+    --accent:#2EA44F;
+    --glass: rgba(255,255,255,0.03);
+    --accent-2: #ff7ab6;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;font-family:Inter,system-ui, -apple-system, "Segoe UI", Roboto, Arial; background:var(--bg); color:#fff}
+  .wrap{max-width:1100px;margin:14px auto;padding:12px}
+  header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+  h1{font-size:18px;margin:0;font-weight:700}
+  .subtitle{color:var(--muted);font-size:13px}
+  /* grid */
   .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
-  .card{background:var(--card);padding:8px;border-radius:10px;overflow:hidden}
-  img{width:100%;height:160px;object-fit:cover;border-radius:6px}
-  .title{font-weight:600;margin-top:8px}
-  .short{color:var(--muted);font-size:13px}
-  .row{display:flex;gap:8px;margin-top:8px;align-items:center}
-  .btn{padding:8px 10px;border-radius:8px;border:0;cursor:pointer}
-  .btn.primary{background:var(--accent);color:#06140a;font-weight:700}
-  .codebox{margin-top:12px;padding:10px;border-radius:8px;background:#0b0c0d;border:1px solid rgba(255,255,255,0.03)}
-  .code{font-family:monospace;font-size:20px;letter-spacing:2px}
+  @media(min-width:900px){ .grid{grid-template-columns:repeat(4,1fr);} }
+  .card{
+    background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.02));
+    border-radius:12px; overflow:hidden; position:relative; box-shadow:0 8px 30px rgba(0,0,0,0.6);
+    transform-origin:center; transition:transform .25s ease, box-shadow .25s ease;
+    cursor:pointer;
+  }
+  .card:hover{ transform:translateY(-6px) scale(1.03); box-shadow:0 18px 40px rgba(0,0,0,0.7); }
+  .thumb{width:100%; aspect-ratio:4/5; object-fit:cover; display:block; transition:transform .4s ease;}
+  .card:hover .thumb{ transform:scale(1.06); }
+  .overlay{
+    position:absolute; left:0; right:0; bottom:0;
+    background:linear-gradient(0deg, rgba(0,0,0,0.85), rgba(0,0,0,0.12));
+    padding:12px; transform: translateY(100%); transition: transform .22s ease;
+    display:flex; flex-direction:column; gap:6px;
+  }
+  .card:hover .overlay, .card.show-overlay .overlay{ transform: translateY(0%); }
+  .title{font-weight:700;font-size:14px}
+  .short{font-size:13px;color:var(--muted);line-height:1.2}
+  .btn-row{display:flex;gap:8px;margin-top:8px}
+  .btn{padding:8px 10px;border-radius:10px;border:0;cursor:pointer;font-weight:700}
+  .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.06);color:#fff}
+  .btn.primary{background:var(--accent);color:#06140a}
+  /* detail */
+  .detail{display:none}
+  .detail.active{display:block}
+  .detail .viewer{background:var(--card);border-radius:12px;padding:12px;box-shadow:0 10px 30px rgba(0,0,0,0.6)}
+  .viewer .imgwrap{width:100%;height:min(62vh,700px);background:#000;border-radius:10px;overflow:hidden;display:flex;align-items:center;justify-content:center}
+  .viewer img{width:100%;height:100%;object-fit:cover;display:block}
+  .nav{display:flex;gap:8px;justify-content:center;margin-top:10px}
+  .pager{display:flex;gap:6px;justify-content:center;margin-top:8px}
+  .dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.12)}
+  .dot.active{background:var(--accent)}
+  .caption{color:var(--muted);margin-top:10px}
+  .detail-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:8px}
+  /* code area */
+  .codebox{margin-top:14px;padding:12px;border-radius:8px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.03)}
+  .code{font-family:monospace;font-size:20px;letter-spacing:2px;padding:6px 10px;border-radius:6px;background:rgba(0,0,0,0.3);display:inline-block}
   .hint{color:var(--muted);font-size:13px;margin-top:8px}
+  .small{font-size:13px;color:var(--muted)}
+  /* playful accent */
+  .accent-pill{background:linear-gradient(90deg,var(--accent),var(--accent-2));padding:6px 10px;border-radius:999px;color:#06140a;font-weight:700}
+  /* mobile */
+  @media(max-width:600px){
+    .thumb{height:220px}
+    .viewer .imgwrap{height:52vh}
+  }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h2>📚 Готовые сценарии</h2>
-  <div id="grid" class="grid"></div>
+  <header>
+    <div>
+      <h1>📚 Готовые решения</h1>
+      <div class="subtitle">Выберите сцену — откройте её и нажмите «Арендовать», скопируйте код и вставьте в бота.</div>
+    </div>
+    <div class="accent-pill">Быстро и просто</div>
+  </header>
 
-  <div id="detail" style="display:none;margin-top:12px" class="card">
-    <div style="display:flex;justify-content:space-between;align-items:center">
+  <!-- MAIN GALLERY -->
+  <div id="mainView">
+    <div class="grid" id="grid"></div>
+  </div>
+
+  <!-- DETAIL VIEW -->
+  <div id="detailView" class="detail">
+    <div class="detail-header">
+      <div style="font-weight:700" id="detailTitle">Title</div>
       <div>
-        <div id="dtitle" class="title">Title</div>
-        <div id="dshort" class="short">Short</div>
-      </div>
-      <div>
-        <button id="backBtn" class="btn">🔙</button>
+        <button id="detailBack" class="btn ghost">🔙 Назад</button>
+        <button id="rentBtn" class="btn primary">Арендовать</button>
       </div>
     </div>
 
-    <div style="margin-top:10px">
-      <div id="dcaption" class="short"></div>
-      <div class="row">
-        <button id="rentBtn" class="btn primary">Арендовать</button>
+    <div class="viewer">
+      <div class="imgwrap" id="imgWrap">
+        <img id="detailImg" src="" alt="image"/>
       </div>
 
-      <div id="codeArea" class="codebox" style="display:none">
-        <div>Ваш код для вставки в бота:</div>
-        <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
-          <div id="theCode" class="code">GS0100AB</div>
-          <button id="copyBtn" class="btn">Копировать</button>
-        </div>
-        <div class="hint">Вставьте код в чат с ботом — бот автоматически подставит параметры сценария (кроме времени и шагов).</div>
+      <div class="nav" style="margin-top:12px">
+        <button id="prevBtn" class="btn ghost">◀️</button>
+        <button id="nextBtn" class="btn ghost">▶️</button>
       </div>
+
+      <div class="pager" id="pager"></div>
+      <div class="caption" id="detailCaption"></div>
+
+      <!-- Code block (hidden until rent) -->
+      <div id="codeArea" class="codebox" style="display:none">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+          <div>
+            <div class="small">Ваш уникальный код для вставки в бота:</div>
+            <div style="display:flex;align-items:center;gap:10px;margin-top:8px">
+              <div id="theCode" class="code">GS00ABCD</div>
+              <button id="copyBtn" class="btn">Копировать</button>
+            </div>
+            <div class="hint">Вставьте код в чат с ботом — бот подставит параметры сценария (время и шаги выберете в боте).</div>
+          </div>
+          <div style="min-width:140px;text-align:right">
+            <div class="small">Можно закрыть приложение — код сохранится в буфере.</div>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>
 
 <script>
+/* ======= Data ======= */
 const ALL_SCENARIOS = [
-  { title: "Винтажный портрет", short: "Мягкий свет, тёплые тона.", caption: "Винтажный портрет: мягкий свет, тёплые тона."},
-  { title: "Альтернативная героиня", short: "Яркая стрижка и пирсинг.", caption: "Альтернативный стиль: яркая стрижка, пирсинг."},
-  { title: "Неоновый киберпанк", short: "Неон, дождь.", caption: "Киберпанк: неоновые акценты, городской дождь."},
-  { title: "Морской портрет", short: "Ветер в волосах.", caption: "Морской портрет: свежий берег, задумчивый взгляд."}
+  { title: "Винтажный портрет", short: "Мягкий свет, тёплые тона.", caption: "Винтажный портрет: мягкий свет, тёплые тона. Короткая предыстория: героиня — наследница старого особняка.", images:[
+      "https://picsum.photos/seed/vintage1/1200/1600",
+      "https://picsum.photos/seed/vintage2/1200/1600",
+      "https://picsum.photos/seed/vintage3/1200/1600"
+  ]},
+  { title: "Альтернативная героиня", short: "Яркая стрижка и пирсинг.", caption: "Альтернативный стиль: яркая стрижка, пирсинг. Предыстория: уличный артист с характером.", images:[
+      "https://picsum.photos/seed/alt1/1200/1600",
+      "https://picsum.photos/seed/alt2/1200/1600",
+      "https://picsum.photos/seed/alt3/1200/1600"
+  ]},
+  { title: "Неоновый киберпанк", short: "Неон, городской дождь.", caption: "Киберпанк: неоновые акценты, влажный городской пейзаж. Короткая предыстория: хакер-поэт.", images:[
+      "https://picsum.photos/seed/cyber1/1200/1600",
+      "https://picsum.photos/seed/cyber2/1200/1600",
+      "https://picsum.photos/seed/cyber3/1200/1600"
+  ]},
+  { title: "Морской портрет", short: "Свежий воздух, ветер в волосах.", caption: "Морской портрет: пасмурный берег, солёный ветер, задумчивый взгляд.", images:[
+      "https://picsum.photos/seed/sea1/1200/1600",
+      "https://picsum.photos/seed/sea2/1200/1600",
+      "https://picsum.photos/seed/sea3/1200/1600"
+  ]},
 ];
-
-// helper генерации кода: GS + two-digit index + 4 символа base36 uppercase
-function randCodeForIndex(idx){
-  const pad = String(idx).padStart(2,'0');
-  const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  let s = '';
-  for(let i=0;i<4;i++) s += chars[Math.floor(Math.random()*chars.length)];
-  return 'GS' + pad + s;
-}
+/* ==================== */
 
 const grid = document.getElementById('grid');
-const detail = document.getElementById('detail');
-const dtitle = document.getElementById('dtitle');
-const dshort = document.getElementById('dshort');
-const dcaption = document.getElementById('dcaption');
-const backBtn = document.getElementById('backBtn');
+const mainView = document.getElementById('mainView');
+const detailView = document.getElementById('detailView');
+const detailImg = document.getElementById('detailImg');
+const detailTitle = document.getElementById('detailTitle');
+const detailCaption = document.getElementById('detailCaption');
+const pager = document.getElementById('pager');
 const rentBtn = document.getElementById('rentBtn');
+const detailBack = document.getElementById('detailBack');
+
 const codeArea = document.getElementById('codeArea');
 const theCode = document.getElementById('theCode');
 const copyBtn = document.getElementById('copyBtn');
 
-let currentIdx = 0;
+let chosenListIndices = [];  // глобальные индексы в ALL_SCENARIOS
+let chosenList = [];
+let currentGlobalIndex = null;
+let currentScenarioIndex = 0;
+let slideIndex = 0;
+let slideshowTimer = null;
 
+/* Utility */
+function pickRandomIndices(arrLength, n){
+  const out = [];
+  const idxs = Array.from({length: arrLength}, (_,i)=>i);
+  while(out.length < n && idxs.length){
+    const i = Math.floor(Math.random() * idxs.length);
+    out.push(idxs.splice(i,1)[0]);
+  }
+  return out;
+}
+
+/* Render main gallery (show up to 4 random scenarios) */
 function renderMain(){
   grid.innerHTML = '';
-  for(let i=0;i<ALL_SCENARIOS.length;i++){
-    const sc = ALL_SCENARIOS[i];
-    const c = document.createElement('div'); c.className='card';
-    c.style.cursor='pointer';
-    c.innerHTML = `<img src="https://picsum.photos/seed/${i}/600/400" alt=""><div class="title">${sc.title}</div><div class="short">${sc.short}</div>`;
-    c.addEventListener('click', ()=> openDetail(i));
-    grid.appendChild(c);
+  const take = Math.min(4, ALL_SCENARIOS.length);
+  chosenListIndices = pickRandomIndices(ALL_SCENARIOS.length, take);
+  chosenList = chosenListIndices.map(i => ALL_SCENARIOS[i]);
+
+  chosenList.forEach((sc, localIdx) => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    const img = document.createElement('img');
+    img.className = 'thumb';
+    img.src = sc.images[0];
+    img.alt = sc.title;
+
+    const overlay = document.createElement('div');
+    overlay.className = 'overlay';
+    overlay.innerHTML = `<div class="title">${sc.title}</div><div class="short">${sc.short}</div>
+                         <div class="btn-row"><button class="btn ghost">Подробнее</button></div>`;
+
+    card.appendChild(img);
+    card.appendChild(overlay);
+
+    card.addEventListener('click', (e)=>{
+      // mobile quick show overlay behavior
+      if(window.innerWidth <= 900){
+        if(!card.classList.contains('show-overlay')){
+          card.classList.add('show-overlay');
+          setTimeout(()=> card.classList.remove('show-overlay'), 3200);
+          return;
+        }
+      }
+      openDetail(localIdx);
+    });
+
+    img.addEventListener('dblclick', ()=> openDetail(localIdx));
+    grid.appendChild(card);
+  });
+}
+
+/* Detail open */
+function openDetail(localIdx){
+  currentScenarioIndex = localIdx;
+  slideIndex = 0;
+  currentGlobalIndex = chosenListIndices[localIdx];
+  const sc = chosenList[localIdx];
+  detailTitle.textContent = sc.title;
+  detailCaption.textContent = sc.caption;
+  detailImg.src = sc.images[slideIndex];
+  renderPager(sc.images.length);
+  mainView.style.display = 'none';
+  detailView.classList.add('active');
+  codeArea.style.display = 'none';
+  startSlideshow();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+/* Back to main */
+function backToMain(){
+  stopSlideshow();
+  detailView.classList.remove('active');
+  mainView.style.display = '';
+}
+
+/* Slideshow */
+function renderPager(len){
+  pager.innerHTML = '';
+  for(let i=0;i<len;i++){
+    const d = document.createElement('div');
+    d.className = 'dot' + (i===slideIndex ? ' active' : '');
+    d.addEventListener('click', ()=> {
+      stopSlideshow();
+      slideIndex = i;
+      updateSlide();
+      startSlideshow();
+    });
+    pager.appendChild(d);
   }
 }
-
-function openDetail(i){
-  currentIdx = i;
-  const sc = ALL_SCENARIOS[i];
-  dtitle.textContent = sc.title;
-  dshort.textContent = sc.short;
-  dcaption.textContent = sc.caption;
-  codeArea.style.display='none';
-  detail.style.display='block';
-  window.scrollTo({top:0,behavior:'smooth'});
+function updateSlide(){
+  const sc = chosenList[currentScenarioIndex];
+  detailImg.src = sc.images[slideIndex];
+  renderPager(sc.images.length);
+}
+function nextSlide(){
+  const sc = chosenList[currentScenarioIndex];
+  slideIndex = (slideIndex + 1) % sc.images.length;
+  updateSlide();
+}
+function prevSlide(){
+  const sc = chosenList[currentScenarioIndex];
+  slideIndex = (slideIndex - 1 + sc.images.length) % sc.images.length;
+  updateSlide();
+}
+function startSlideshow(){
+  stopSlideshow();
+  slideshowTimer = setInterval(nextSlide, 3000); // 3 seconds
+}
+function stopSlideshow(){
+  if(slideshowTimer){ clearInterval(slideshowTimer); slideshowTimer = null; }
 }
 
-backBtn.addEventListener('click', ()=>{ detail.style.display='none'; });
+/* Hook buttons */
+detailBack.addEventListener('click', backToMain);
+document.getElementById('prevBtn').addEventListener('click', ()=>{ stopSlideshow(); prevSlide(); startSlideshow(); });
+document.getElementById('nextBtn').addEventListener('click', ()=>{ stopSlideshow(); nextSlide(); startSlideshow(); });
+
+/* RENT: show code + attempt to copy */
+function randSuffix(){
+  const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  let s=''; for(let i=0;i<4;i++) s += chars[Math.floor(Math.random()*chars.length)];
+  return s;
+}
+function codeForIndex(idx){
+  const pad = String(idx).padStart(2,'0');
+  return 'GS' + pad + randSuffix();
+}
 
 rentBtn.addEventListener('click', ()=> {
-  const code = randCodeForIndex(currentIdx);
+  const code = codeForIndex(currentGlobalIndex);
   theCode.textContent = code;
   codeArea.style.display = 'block';
-  // не отправляем ничего в бота — это просто код для копирования
-  // При желании можно попытаться скопировать автоматически:
-  try{ navigator.clipboard.writeText(code).then(()=>{ /* ok */ }, ()=>{/* not allowed */}); }catch(e){}
+
+  // try write to clipboard silently
+  try{
+    navigator.clipboard.writeText(code).then(()=> {
+      copyBtn.textContent = 'Скопировано ✓';
+      setTimeout(()=> copyBtn.textContent = 'Копировать', 1500);
+    }, ()=> {
+      // can't write
+    });
+  }catch(e){}
+  // For compatibility attempt Telegram.WebApp.sendData? (we intentionally DO NOT send so user copies manually)
 });
 
 copyBtn.addEventListener('click', async ()=>{
@@ -126,11 +330,17 @@ copyBtn.addEventListener('click', async ()=>{
     copyBtn.textContent = 'Скопировано ✓';
     setTimeout(()=> copyBtn.textContent = 'Копировать', 1500);
   }catch(e){
-    alert('Не удалось скопировать. Скопируйте вручную: ' + txt);
+    alert('Не удалось скопировать автоматически. Скопируйте вручную: ' + txt);
   }
 });
 
-// Инициализация
+/* Init Telegram WebApp hints (kept for dev transparency) */
+if(window.Telegram && Telegram.WebApp){
+  try{ Telegram.WebApp.expand(); }catch(e){}
+  try{ Telegram.WebApp.MainButton.hide(); }catch(e){}
+}
+
+/* Init */
 renderMain();
 </script>
 </body>
