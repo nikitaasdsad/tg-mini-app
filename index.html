@@ -11,8 +11,7 @@
     --card:#121316;
     --muted:#bfc7cd;
     --accent:#2EA44F;
-    --glass: rgba(255,255,255,0.03);
-    --accent-2: #ff7ab6;
+    --accent-2:#ff7ab6;
   }
   *{box-sizing:border-box}
   html,body{height:100%;margin:0;font-family:Inter,system-ui, -apple-system, "Segoe UI", Roboto, Arial; background:var(--bg); color:#fff}
@@ -20,7 +19,6 @@
   header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
   h1{font-size:18px;margin:0;font-weight:700}
   .subtitle{color:var(--muted);font-size:13px}
-  /* grid */
   .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
   @media(min-width:900px){ .grid{grid-template-columns:repeat(4,1fr);} }
   .card{
@@ -30,7 +28,7 @@
     cursor:pointer;
   }
   .card:hover{ transform:translateY(-6px) scale(1.03); box-shadow:0 18px 40px rgba(0,0,0,0.7); }
-  .thumb{width:100%; aspect-ratio:4/5; object-fit:cover; display:block; transition:transform .4s ease;}
+  .thumb{width:100%; aspect-ratio:1/1; object-fit:cover; display:block; transition:transform .4s ease;}
   .card:hover .thumb{ transform:scale(1.06); }
   .overlay{
     position:absolute; left:0; right:0; bottom:0;
@@ -45,29 +43,57 @@
   .btn{padding:8px 10px;border-radius:10px;border:0;cursor:pointer;font-weight:700}
   .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.06);color:#fff}
   .btn.primary{background:var(--accent);color:#06140a}
-  /* detail */
   .detail{display:none}
   .detail.active{display:block}
   .detail .viewer{background:var(--card);border-radius:12px;padding:12px;box-shadow:0 10px 30px rgba(0,0,0,0.6)}
-  .viewer .imgwrap{width:100%;height:min(62vh,700px);background:#000;border-radius:10px;overflow:hidden;display:flex;align-items:center;justify-content:center}
-  .viewer img{width:100%;height:100%;object-fit:cover;display:block}
+  .viewer .imgwrap {
+  width: min(100%, 1024px);
+  aspect-ratio: 1/1;
+  background:#000;
+  border-radius:10px;
+  overflow:hidden;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.viewer img {
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
   .nav{display:flex;gap:8px;justify-content:center;margin-top:10px}
   .pager{display:flex;gap:6px;justify-content:center;margin-top:8px}
   .dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.12)}
   .dot.active{background:var(--accent)}
   .caption{color:var(--muted);margin-top:10px}
   .detail-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:8px}
-  /* code area */
-  .codebox{margin-top:14px;padding:12px;border-radius:8px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.03)}
-  .code{font-family:monospace;font-size:20px;letter-spacing:2px;padding:6px 10px;border-radius:6px;background:rgba(0,0,0,0.3);display:inline-block}
-  .hint{color:var(--muted);font-size:13px;margin-top:8px}
-  .small{font-size:13px;color:var(--muted)}
-  /* playful accent */
-  .accent-pill{background:linear-gradient(90deg,var(--accent),var(--accent-2));padding:6px 10px;border-radius:999px;color:#06140a;font-weight:700}
-  /* mobile */
+
+  /* Modal styles */
+  .modal-backdrop{
+    position:fixed; inset:0; background:rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center;
+    z-index:1000; opacity:0; pointer-events:none; transition:opacity .18s ease;
+    backdrop-filter: blur(6px);
+  }
+  .modal-backdrop.show{ opacity:1; pointer-events:auto; }
+  .modal{
+    width: min(720px, 94%);
+    background: linear-gradient(180deg, rgba(18,19,22,0.98), rgba(14,15,17,0.98));
+    border-radius:12px; padding:18px; box-shadow:0 30px 80px rgba(0,0,0,0.7); transform: translateY(12px) scale(.98); transition:transform .18s ease, opacity .18s ease;
+  }
+  .modal-backdrop.show .modal{ transform: translateY(0) scale(1); }
+  .modal-header{display:flex;justify-content:space-between;align-items:center;gap:12px}
+  .modal-title{font-size:18px;font-weight:700}
+  .modal-close{background:transparent;border:0;color:var(--muted);font-size:18px;cursor:pointer;padding:6px;border-radius:6px}
+  .modal-body{margin-top:12px;display:flex;gap:18px;align-items:center}
+  .code-big{font-family:monospace;font-size:34px;letter-spacing:2px;padding:12px 18px;border-radius:10px;background:rgba(0,0,0,0.35);display:inline-block}
+  .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:16px}
+  .muted{color:var(--muted);font-size:13px}
+
   @media(max-width:600px){
-    .thumb{height:220px}
-    .viewer .imgwrap{height:52vh}
+    .modal-body{flex-direction:column;align-items:stretch}
+    .code-big{font-size:28px;text-align:center}
   }
 </style>
 </head>
@@ -76,9 +102,9 @@
   <header>
     <div>
       <h1>📚 Готовые решения</h1>
-      <div class="subtitle">Выберите сцену — откройте её и нажмите «Арендовать», скопируйте код и вставьте в бота.</div>
+      <div class="subtitle">Выберите сцену — откройте её и нажмите «Арендовать», затем вставьте код в бота.</div>
     </div>
-    <div class="accent-pill">Быстро и просто</div>
+    <div style="background:linear-gradient(90deg,var(--accent),var(--accent-2));padding:6px 10px;border-radius:999px;color:#06140a;font-weight:700">Быстро и просто</div>
   </header>
 
   <!-- MAIN GALLERY -->
@@ -108,53 +134,69 @@
 
       <div class="pager" id="pager"></div>
       <div class="caption" id="detailCaption"></div>
+    </div>
+  </div>
+</div>
 
-      <!-- Code block (hidden until rent) -->
-      <div id="codeArea" class="codebox" style="display:none">
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
-          <div>
-            <div class="small">Ваш уникальный код для вставки в бота:</div>
-            <div style="display:flex;align-items:center;gap:10px;margin-top:8px">
-              <div id="theCode" class="code">GS00ABCD</div>
-              <button id="copyBtn" class="btn">Копировать</button>
-            </div>
-            <div class="hint">Вставьте код в чат с ботом — бот подставит параметры сценария (время и шаги выберете в боте).</div>
-          </div>
-          <div style="min-width:140px;text-align:right">
-            <div class="small">Можно закрыть приложение — код сохранится в буфере.</div>
+<!-- Modal (initially hidden) -->
+<div id="modalBackdrop" class="modal-backdrop" role="dialog" aria-modal="true" style="display:none">
+  <div class="modal" role="document">
+    <div class="modal-header">
+      <div class="modal-title">Код для аренды</div>
+      <button id="modalCloseIcon" class="modal-close" aria-label="Закрыть">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <div style="flex:1">
+        <div class="muted">Ваш уникальный код для вставки в бота:</div>
+        <div style="margin-top:10px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+          <div id="modalCode" class="code-big">GS00ABCD</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <button id="modalCopy" class="btn primary">Копировать</button>
+            <button id="modalCopyClose" class="btn ghost">Копировать и закрыть</button>
           </div>
         </div>
+
+        <div class="muted" style="margin-top:12px">Вставьте код в чат с ботом — бот подставит параметры сценария (время и шаги выберете в боте).</div>
       </div>
 
+      <div style="min-width:140px;text-align:right">
+        <div class="muted">Совет</div>
+        <div class="muted" style="margin-top:8px">Модал можно закрыть, чтобы вернуться к просмотру фотографий.</div>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button id="modalClose" class="btn ghost">Закрыть</button>
     </div>
   </div>
 </div>
 
 <script>
-/* ======= Data ======= */
+/* ========== DATA ========== */
 const ALL_SCENARIOS = [
-  { title: "Винтажный портрет", short: "Мягкий свет, тёплые тона.", caption: "Винтажный портрет: мягкий свет, тёплые тона. Короткая предыстория: героиня — наследница старого особняка.", images:[
-      "https://picsum.photos/seed/vintage1/1200/1600",
-      "https://picsum.photos/seed/vintage2/1200/1600",
-      "https://picsum.photos/seed/vintage3/1200/1600"
+  { title: "Лиза", short: "Только переехала в Мосвку после расставания с парнем, она пошла в клуб чтобы утешить себя танцами.", caption: "Она — блондинка с искренним взглядом и лёгкой улыбкой. Попробуешь заговорить — и увидишь, что за красотой скрывается характер.", images:[
+      "31.jpg",
+      "32.jpg",
+      "33.jpg"
   ]},
-  { title: "Альтернативная героиня", short: "Яркая стрижка и пирсинг.", caption: "Альтернативный стиль: яркая стрижка, пирсинг. Предыстория: уличный артист с характером.", images:[
-      "https://picsum.photos/seed/alt1/1200/1600",
-      "https://picsum.photos/seed/alt2/1200/1600",
-      "https://picsum.photos/seed/alt3/1200/1600"
+  { title: "Марго", short: "Недопонятая родителями готка была выгната из квартиры за свое поведение, вы встречаете ее темной улица.", caption: "Тёмный макияж и холодный взгляд, но внутри — живая душа, которая любит разговоры до утра.", images:[
+      "23.jpg",
+      "22.jpg",
+      "21.jpg"
   ]},
-  { title: "Неоновый киберпанк", short: "Неон, городской дождь.", caption: "Киберпанк: неоновые акценты, влажный городской пейзаж. Короткая предыстория: хакер-поэт.", images:[
-      "https://picsum.photos/seed/cyber1/1200/1600",
-      "https://picsum.photos/seed/cyber2/1200/1600",
-      "https://picsum.photos/seed/cyber3/1200/1600"
+  { title: "Кира", short: "Круглая отличница, согласилась прогуляться в вами по парку", caption: "Она будто идеальная отличница, но за этим скрывается огонь, который проявляется в разговоре.", images:[
+      "41.jpg",
+      "42.jpg",
+      "43.jpg"
   ]},
-  { title: "Морской портрет", short: "Свежий воздух, ветер в волосах.", caption: "Морской портрет: пасмурный берег, солёный ветер, задумчивый взгляд.", images:[
-      "https://picsum.photos/seed/sea1/1200/1600",
-      "https://picsum.photos/seed/sea2/1200/1600",
-      "https://picsum.photos/seed/sea3/1200/1600"
+  { title: "Настя", short: "Лучшая подруга не против провести с вами время в аквапарке", caption: "Весёлая и дерзкая — словно лучший друг, только с улыбкой, от которой невозможно оторваться.", images:[
+      "11.jpg",
+      "12.jpg",
+      "13.jpg"
   ]},
 ];
-/* ==================== */
+/* ========================= */
 
 const grid = document.getElementById('grid');
 const mainView = document.getElementById('mainView');
@@ -166,11 +208,14 @@ const pager = document.getElementById('pager');
 const rentBtn = document.getElementById('rentBtn');
 const detailBack = document.getElementById('detailBack');
 
-const codeArea = document.getElementById('codeArea');
-const theCode = document.getElementById('theCode');
-const copyBtn = document.getElementById('copyBtn');
+const modalBackdrop = document.getElementById('modalBackdrop');
+const modalCode = document.getElementById('modalCode');
+const modalCopy = document.getElementById('modalCopy');
+const modalCopyClose = document.getElementById('modalCopyClose');
+const modalClose = document.getElementById('modalClose');
+const modalCloseIcon = document.getElementById('modalCloseIcon');
 
-let chosenListIndices = [];  // глобальные индексы в ALL_SCENARIOS
+let chosenListIndices = [];
 let chosenList = [];
 let currentGlobalIndex = null;
 let currentScenarioIndex = 0;
@@ -188,7 +233,17 @@ function pickRandomIndices(arrLength, n){
   return out;
 }
 
-/* Render main gallery (show up to 4 random scenarios) */
+function randSuffix(){
+  const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  let s=''; for(let i=0;i<4;i++) s += chars[Math.floor(Math.random()*chars.length)];
+  return s;
+}
+function codeForIndex(idx){
+  const pad = String(idx).padStart(2,'0');
+  return 'GS' + pad + randSuffix();
+}
+
+/* Render main */
 function renderMain(){
   grid.innerHTML = '';
   const take = Math.min(4, ALL_SCENARIOS.length);
@@ -212,7 +267,6 @@ function renderMain(){
     card.appendChild(overlay);
 
     card.addEventListener('click', (e)=>{
-      // mobile quick show overlay behavior
       if(window.innerWidth <= 900){
         if(!card.classList.contains('show-overlay')){
           card.classList.add('show-overlay');
@@ -240,7 +294,7 @@ function openDetail(localIdx){
   renderPager(sc.images.length);
   mainView.style.display = 'none';
   detailView.classList.add('active');
-  codeArea.style.display = 'none';
+  hideModal(); // ensure modal hidden
   startSlideshow();
   window.scrollTo({top:0, behavior:'smooth'});
 }
@@ -295,46 +349,58 @@ detailBack.addEventListener('click', backToMain);
 document.getElementById('prevBtn').addEventListener('click', ()=>{ stopSlideshow(); prevSlide(); startSlideshow(); });
 document.getElementById('nextBtn').addEventListener('click', ()=>{ stopSlideshow(); nextSlide(); startSlideshow(); });
 
-/* RENT: show code + attempt to copy */
-function randSuffix(){
-  const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  let s=''; for(let i=0;i<4;i++) s += chars[Math.floor(Math.random()*chars.length)];
-  return s;
-}
-function codeForIndex(idx){
-  const pad = String(idx).padStart(2,'0');
-  return 'GS' + pad + randSuffix();
-}
-
-rentBtn.addEventListener('click', ()=> {
-  const code = codeForIndex(currentGlobalIndex);
-  theCode.textContent = code;
-  codeArea.style.display = 'block';
-
-  // try write to clipboard silently
+/* Modal control */
+function showModalWithCode(code){
+  modalCode.textContent = code;
+  modalBackdrop.style.display = 'flex';
+  // small delay to allow transition
+  setTimeout(()=> modalBackdrop.classList.add('show'), 10);
+  // try to copy immediately
   try{
     navigator.clipboard.writeText(code).then(()=> {
-      copyBtn.textContent = 'Скопировано ✓';
-      setTimeout(()=> copyBtn.textContent = 'Копировать', 1500);
-    }, ()=> {
-      // can't write
-    });
+      modalCopy.textContent = 'Скопировано ✓';
+      setTimeout(()=> modalCopy.textContent = 'Копировать', 1400);
+    }).catch(()=>{/* ignored if not allowed */});
   }catch(e){}
-  // For compatibility attempt Telegram.WebApp.sendData? (we intentionally DO NOT send so user copies manually)
+}
+function hideModal(){
+  modalBackdrop.classList.remove('show');
+  setTimeout(()=> modalBackdrop.style.display = 'none', 180);
+}
+
+/* Rent button: show modal */
+rentBtn.addEventListener('click', ()=> {
+  const code = codeForIndex(currentGlobalIndex);
+  showModalWithCode(code);
 });
 
-copyBtn.addEventListener('click', async ()=>{
-  const txt = theCode.textContent.trim();
+/* Modal buttons */
+modalCopy.addEventListener('click', async ()=>{
+  const txt = modalCode.textContent.trim();
   try{
     await navigator.clipboard.writeText(txt);
-    copyBtn.textContent = 'Скопировано ✓';
-    setTimeout(()=> copyBtn.textContent = 'Копировать', 1500);
+    modalCopy.textContent = 'Скопировано ✓';
+    setTimeout(()=> modalCopy.textContent = 'Копировать', 1400);
   }catch(e){
     alert('Не удалось скопировать автоматически. Скопируйте вручную: ' + txt);
   }
 });
+modalCopyClose.addEventListener('click', async ()=>{
+  const txt = modalCode.textContent.trim();
+  try{ await navigator.clipboard.writeText(txt); }catch(e){}
+  hideModal();
+});
+modalClose.addEventListener('click', hideModal);
+modalCloseIcon.addEventListener('click', hideModal);
 
-/* Init Telegram WebApp hints (kept for dev transparency) */
+/* close on backdrop click */
+modalBackdrop.addEventListener('click', (e)=> {
+  if(e.target === modalBackdrop) hideModal();
+});
+/* close on ESC */
+document.addEventListener('keydown', (e)=> { if(e.key === 'Escape') hideModal(); });
+
+/* Init Telegram WebApp hints (optional) */
 if(window.Telegram && Telegram.WebApp){
   try{ Telegram.WebApp.expand(); }catch(e){}
   try{ Telegram.WebApp.MainButton.hide(); }catch(e){}
