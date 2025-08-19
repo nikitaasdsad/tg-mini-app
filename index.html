@@ -221,24 +221,17 @@ document.getElementById('detailBack').addEventListener('click', backToMain);
 document.getElementById('prevBtn').addEventListener('click', ()=>{ stopSlideshow(); prevSlide(); startSlideshow(); });
 document.getElementById('nextBtn').addEventListener('click', ()=>{ stopSlideshow(); nextSlide(); startSlideshow(); });
 
-/* Rent button: send data to bot via Telegram.WebApp.sendData (full payload + global idx) */
+/* Rent button: отправляем минимальный payload (только индекс) */
 document.getElementById('rentBtn').addEventListener('click', ()=>{
-  const sc = chosenList[currentScenarioIndex];
   const payloadObj = {
     action: "rent",
-    scenario_idx: currentGlobalIndex,
-    scenario: {
-      title: sc.title,
-      short: sc.short,
-      caption: sc.caption,
-      images: sc.images
-    }
+    scenario_idx: currentGlobalIndex   // только индекс, без картинок/текстов
   };
   const payloadStr = JSON.stringify(payloadObj);
   if(window.Telegram && Telegram.WebApp && typeof Telegram.WebApp.sendData === 'function'){
     try{
       Telegram.WebApp.sendData(payloadStr);
-      Telegram.WebApp.close();
+      Telegram.WebApp.close(); // закрыть миниапп и вернуться в чат
     }catch(e){
       console.error("Telegram WebApp error:", e);
       alert("Отправка в бота не удалась: " + e.message);
@@ -247,7 +240,6 @@ document.getElementById('rentBtn').addEventListener('click', ()=>{
     alert("Арендовать (локально): " + payloadStr);
   }
 });
-
 /* Init Telegram WebApp if available */
 if(window.Telegram && Telegram.WebApp){
   try{ Telegram.WebApp.expand(); }catch(e){}
