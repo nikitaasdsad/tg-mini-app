@@ -1,49 +1,137 @@
-<!-- вставь этот файл как index.html -->
 <!doctype html>
 <html lang="ru">
-<head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Debug WebApp</title>
-<style>body{font-family:Inter,Arial;margin:18px;color:#fff;background:#0f1113} .box{background:#121316;padding:12px;border-radius:8px} button{padding:8px 12px;margin-top:8px}</style>
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Готовые сценарии — мини-апп</title>
+<style>
+  :root{--bg:#0f1113;--card:#121316;--muted:#bfc7cd;--accent:#2EA44F}
+  body{margin:18px;font-family:Inter,Arial;background:var(--bg);color:#fff}
+  .wrap{max-width:720px;margin:0 auto}
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+  .card{background:var(--card);padding:8px;border-radius:10px;overflow:hidden}
+  img{width:100%;height:160px;object-fit:cover;border-radius:6px}
+  .title{font-weight:600;margin-top:8px}
+  .short{color:var(--muted);font-size:13px}
+  .row{display:flex;gap:8px;margin-top:8px;align-items:center}
+  .btn{padding:8px 10px;border-radius:8px;border:0;cursor:pointer}
+  .btn.primary{background:var(--accent);color:#06140a;font-weight:700}
+  .codebox{margin-top:12px;padding:10px;border-radius:8px;background:#0b0c0d;border:1px solid rgba(255,255,255,0.03)}
+  .code{font-family:monospace;font-size:20px;letter-spacing:2px}
+  .hint{color:var(--muted);font-size:13px;margin-top:8px}
+</style>
 </head>
 <body>
-  <h2>Тест WebApp</h2>
-  <div class="box" id="info">Идёт проверка...</div>
-  <div style="margin-top:12px">
-    <button id="sendTest">Отправить тест-пейлоад в бот</button>
+<div class="wrap">
+  <h2>📚 Готовые сценарии</h2>
+  <div id="grid" class="grid"></div>
+
+  <div id="detail" style="display:none;margin-top:12px" class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div id="dtitle" class="title">Title</div>
+        <div id="dshort" class="short">Short</div>
+      </div>
+      <div>
+        <button id="backBtn" class="btn">🔙</button>
+      </div>
+    </div>
+
+    <div style="margin-top:10px">
+      <div id="dcaption" class="short"></div>
+      <div class="row">
+        <button id="rentBtn" class="btn primary">Арендовать</button>
+      </div>
+
+      <div id="codeArea" class="codebox" style="display:none">
+        <div>Ваш код для вставки в бота:</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
+          <div id="theCode" class="code">GS0100AB</div>
+          <button id="copyBtn" class="btn">Копировать</button>
+        </div>
+        <div class="hint">Вставьте код в чат с ботом — бот автоматически подставит параметры сценария (кроме времени и шагов).</div>
+      </div>
+    </div>
   </div>
+</div>
 
 <script>
-const info = document.getElementById('info');
-function update(msg){ info.innerHTML += '<div>'+msg+'</div>'; console.log(msg); }
+const ALL_SCENARIOS = [
+  { title: "Винтажный портрет", short: "Мягкий свет, тёплые тона.", caption: "Винтажный портрет: мягкий свет, тёплые тона."},
+  { title: "Альтернативная героиня", short: "Яркая стрижка и пирсинг.", caption: "Альтернативный стиль: яркая стрижка, пирсинг."},
+  { title: "Неоновый киберпанк", short: "Неон, дождь.", caption: "Киберпанк: неоновые акценты, городской дождь."},
+  { title: "Морской портрет", short: "Ветер в волосах.", caption: "Морской портрет: свежий берег, задумчивый взгляд."}
+];
 
-update('window.Telegram: ' + (!!window.Telegram));
-if(window.Telegram && Telegram.WebApp){
-  update('Telegram.WebApp: OK');
-  try{
-    update('has initData: ' + !!Telegram.WebApp.initData);
-    update('sendData type: ' + (typeof Telegram.WebApp.sendData));
-    update('isExpanded: ' + !!Telegram.WebApp.isExpanded);
-    update('version: ' + (Telegram.WebApp.version || 'unknown'));
-  }catch(e){ update('Ошибка доступа к свойствам Telegram.WebApp: '+ e.message) }
-} else {
-  update('Telegram.WebApp не найден. Откройте мини-апп через бот (кнопка в чате).');
+// helper генерации кода: GS + two-digit index + 4 символа base36 uppercase
+function randCodeForIndex(idx){
+  const pad = String(idx).padStart(2,'0');
+  const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  let s = '';
+  for(let i=0;i<4;i++) s += chars[Math.floor(Math.random()*chars.length)];
+  return 'GS' + pad + s;
 }
 
-// Кнопка отправки тестового payload в бот
-document.getElementById('sendTest').addEventListener('click', ()=>{
-  const payload = JSON.stringify({ action: "rent", scenario_idx: 1 });
-  update('Попытка отправить: ' + payload);
-  if(window.Telegram && Telegram.WebApp && typeof Telegram.WebApp.sendData === 'function'){
-    try{
-      Telegram.WebApp.sendData(payload);
-      update('sendData вызван — закрою WebApp через 150ms');
-      setTimeout(()=>{ try{ Telegram.WebApp.close(); }catch(e){ update('close error: '+e.message)} },150);
-    }catch(e){
-      update('Ошибка при sendData: ' + e.message);
-    }
-  } else {
-    update('sendData не доступен. Откройте приложение ВНУТРИ Telegram именно через кнопку у бота.');
+const grid = document.getElementById('grid');
+const detail = document.getElementById('detail');
+const dtitle = document.getElementById('dtitle');
+const dshort = document.getElementById('dshort');
+const dcaption = document.getElementById('dcaption');
+const backBtn = document.getElementById('backBtn');
+const rentBtn = document.getElementById('rentBtn');
+const codeArea = document.getElementById('codeArea');
+const theCode = document.getElementById('theCode');
+const copyBtn = document.getElementById('copyBtn');
+
+let currentIdx = 0;
+
+function renderMain(){
+  grid.innerHTML = '';
+  for(let i=0;i<ALL_SCENARIOS.length;i++){
+    const sc = ALL_SCENARIOS[i];
+    const c = document.createElement('div'); c.className='card';
+    c.style.cursor='pointer';
+    c.innerHTML = `<img src="https://picsum.photos/seed/${i}/600/400" alt=""><div class="title">${sc.title}</div><div class="short">${sc.short}</div>`;
+    c.addEventListener('click', ()=> openDetail(i));
+    grid.appendChild(c);
+  }
+}
+
+function openDetail(i){
+  currentIdx = i;
+  const sc = ALL_SCENARIOS[i];
+  dtitle.textContent = sc.title;
+  dshort.textContent = sc.short;
+  dcaption.textContent = sc.caption;
+  codeArea.style.display='none';
+  detail.style.display='block';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+backBtn.addEventListener('click', ()=>{ detail.style.display='none'; });
+
+rentBtn.addEventListener('click', ()=> {
+  const code = randCodeForIndex(currentIdx);
+  theCode.textContent = code;
+  codeArea.style.display = 'block';
+  // не отправляем ничего в бота — это просто код для копирования
+  // При желании можно попытаться скопировать автоматически:
+  try{ navigator.clipboard.writeText(code).then(()=>{ /* ok */ }, ()=>{/* not allowed */}); }catch(e){}
+});
+
+copyBtn.addEventListener('click', async ()=>{
+  const txt = theCode.textContent.trim();
+  try{
+    await navigator.clipboard.writeText(txt);
+    copyBtn.textContent = 'Скопировано ✓';
+    setTimeout(()=> copyBtn.textContent = 'Копировать', 1500);
+  }catch(e){
+    alert('Не удалось скопировать. Скопируйте вручную: ' + txt);
   }
 });
+
+// Инициализация
+renderMain();
 </script>
 </body>
 </html>
