@@ -223,21 +223,29 @@ document.getElementById('nextBtn').addEventListener('click', ()=>{ stopSlideshow
 
 /* Rent button: отправляем минимальный payload (только индекс) */
 document.getElementById('rentBtn').addEventListener('click', ()=>{
+  // отправляем только индекс сценария (глобальный индекс из ALL_SCENARIOS)
   const payloadObj = {
     action: "rent",
-    scenario_idx: currentGlobalIndex   // только индекс, без картинок/текстов
+    scenario_idx: currentGlobalIndex   // ТОЛЬКО индекс
   };
   const payloadStr = JSON.stringify(payloadObj);
-  if(window.Telegram && Telegram.WebApp && typeof Telegram.WebApp.sendData === 'function'){
-    try{
+
+  if (window.Telegram && Telegram.WebApp && typeof Telegram.WebApp.sendData === 'function') {
+    try {
+      // отправляем данные боту
       Telegram.WebApp.sendData(payloadStr);
-      Telegram.WebApp.close(); // закрыть миниапп и вернуться в чат
-    }catch(e){
-      console.error("Telegram WebApp error:", e);
-      alert("Отправка в бота не удалась: " + e.message);
+      // закрываем WebApp (через небольшой таймаут, чтобы sendData успело отработать)
+      setTimeout(()=> {
+        try { Telegram.WebApp.close(); } catch(e){ /* ignore */ }
+      }, 120);
+    } catch (e) {
+      console.error("sendData error:", e);
+      alert("Ошибка отправки в бот: " + (e.message || e));
     }
   } else {
-    alert("Арендовать (локально): " + payloadStr);
+    // Для отладки локально — показываем короткое сообщение. 
+    // Не используйте fallback alert в рабочем окружении в Telegram.
+    alert("DEBUG: " + payloadStr);
   }
 });
 /* Init Telegram WebApp if available */
