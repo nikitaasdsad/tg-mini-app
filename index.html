@@ -1,169 +1,49 @@
+<!-- вставь этот файл как index.html -->
 <!doctype html>
 <html lang="ru">
-<head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
-<title>Готовые решения</title>
-<style>
-  :root{--bg:#0f1113; --card:#121316; --muted:#bfc7cd; --accent:#2EA44F;}
-  html,body{height:100%; margin:0; font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial; background:var(--bg); color:#fff}
-  .wrap{max-width:1100px; margin:12px auto; padding:12px;}
-  .grid{display:grid; grid-template-columns:repeat(2,1fr); gap:12px;}
-  @media(min-width:900px){ .grid{grid-template-columns:repeat(4,1fr);} }
-  .card{border-radius:12px; overflow:hidden; position:relative; box-shadow:0 6px 20px rgba(0,0,0,0.6); background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));}
-  .thumb{width:100%; aspect-ratio:4/5; object-fit:cover; display:block}
-  .overlay{position:absolute; left:0; right:0; bottom:0; padding:10px; transform:translateY(100%); transition:transform .22s;}
-  .card:hover .overlay, .card.show-overlay .overlay{ transform:translateY(0%); }
-  .title{font-weight:600; font-size:14px}
-  .short{font-size:13px; color:var(--muted)}
-  .btn{padding:8px 10px; border-radius:10px; border:0; cursor:pointer; font-weight:600}
-  .btn.ghost{background:transparent; border:1px solid rgba(255,255,255,0.06)}
-  .btn.primary{background:var(--accent); color:#06140a}
-  .detail{display:none}
-  .detail.active{display:block}
-  .viewer{background:var(--card); border-radius:12px; padding:10px}
-  .imgwrap{width:100%; height:min(62vh,700px); background:#000; display:flex; align-items:center; justify-content:center; border-radius:8px; overflow:hidden}
-  .caption{color:var(--muted); margin-top:10px}
-</style>
+<head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Debug WebApp</title>
+<style>body{font-family:Inter,Arial;margin:18px;color:#fff;background:#0f1113} .box{background:#121316;padding:12px;border-radius:8px} button{padding:8px 12px;margin-top:8px}</style>
 </head>
 <body>
-<div class="wrap">
-  <header><h1>📚 Готовые решения</h1></header>
-
-  <div id="mainView"><div class="grid" id="grid"></div></div>
-
-  <div id="detailView" class="detail">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-      <div id="detailTitle" style="font-weight:600">Title</div>
-      <div>
-        <button id="detailBack" class="btn ghost">🔙 Назад</button>
-        <button id="rentBtn" class="btn primary">Арендовать</button>
-      </div>
-    </div>
-    <div class="viewer">
-      <div class="imgwrap"><img id="detailImg" src="" style="width:100%;height:100%;object-fit:cover"/></div>
-      <div style="display:flex;gap:8px;justify-content:center;margin-top:10px">
-        <button id="prevBtn" class="btn ghost">◀️</button>
-        <button id="nextBtn" class="btn ghost">▶️</button>
-      </div>
-      <div id="pager" style="display:flex;gap:6px;justify-content:center;margin-top:8px"></div>
-      <div class="caption" id="detailCaption"></div>
-    </div>
+  <h2>Тест WebApp</h2>
+  <div class="box" id="info">Идёт проверка...</div>
+  <div style="margin-top:12px">
+    <button id="sendTest">Отправить тест-пейлоад в бот</button>
   </div>
-</div>
 
 <script>
-const ALL_SCENARIOS = [
-  { title: "Винтажный портрет", short: "Мягкий свет, тёплые тона.", caption: "Винтажный портрет: ...", images:[
-      "https://picsum.photos/seed/vintage1/1200/1600",
-      "https://picsum.photos/seed/vintage2/1200/1600",
-      "https://picsum.photos/seed/vintage3/1200/1600"
-  ]},
-  { title: "Альтернативная героиня", short: "Яркая стрижка и пирсинг.", caption: "Альтернативный стиль: ...", images:[
-      "https://picsum.photos/seed/alt1/1200/1600",
-      "https://picsum.photos/seed/alt2/1200/1600",
-      "https://picsum.photos/seed/alt3/1200/1600"
-  ]},
-  { title: "Неоновый киберпанк", short: "Неон, дождь.", caption: "Киберпанк: ...", images:[
-      "https://picsum.photos/seed/cyber1/1200/1600",
-      "https://picsum.photos/seed/cyber2/1200/1600",
-      "https://picsum.photos/seed/cyber3/1200/1600"
-  ]},
-  { title: "Морской портрет", short: "Ветер в волосах.", caption: "Морской портрет: ...", images:[
-      "https://picsum.photos/seed/sea1/1200/1600",
-      "https://picsum.photos/seed/sea2/1200/1600",
-      "https://picsum.photos/seed/sea3/1200/1600"
-  ]}
-];
+const info = document.getElementById('info');
+function update(msg){ info.innerHTML += '<div>'+msg+'</div>'; console.log(msg); }
 
-const grid = document.getElementById('grid');
-const mainView = document.getElementById('mainView');
-const detailView = document.getElementById('detailView');
-const detailImg = document.getElementById('detailImg');
-const detailTitle = document.getElementById('detailTitle');
-const detailCaption = document.getElementById('detailCaption');
-const pager = document.getElementById('pager');
-
-let chosenListIndices = [], chosenList = [], currentGlobalIndex = null, currentScenarioIndex = 0, slideIndex = 0, slideshowTimer = null;
-
-function pickRandomIndices(len, n){
-  const arr = Array.from({length: len}, (_,i)=>i);
-  const out = [];
-  while(out.length < n && arr.length){
-    const i = Math.floor(Math.random()*arr.length);
-    out.push(arr.splice(i,1)[0]);
-  }
-  return out;
+update('window.Telegram: ' + (!!window.Telegram));
+if(window.Telegram && Telegram.WebApp){
+  update('Telegram.WebApp: OK');
+  try{
+    update('has initData: ' + !!Telegram.WebApp.initData);
+    update('sendData type: ' + (typeof Telegram.WebApp.sendData));
+    update('isExpanded: ' + !!Telegram.WebApp.isExpanded);
+    update('version: ' + (Telegram.WebApp.version || 'unknown'));
+  }catch(e){ update('Ошибка доступа к свойствам Telegram.WebApp: '+ e.message) }
+} else {
+  update('Telegram.WebApp не найден. Откройте мини-апп через бот (кнопка в чате).');
 }
 
-function renderMain(){
-  grid.innerHTML = '';
-  const take = Math.min(4, ALL_SCENARIOS.length);
-  chosenListIndices = pickRandomIndices(ALL_SCENARIOS.length, take);
-  chosenList = chosenListIndices.map(i=>ALL_SCENARIOS[i]);
-  chosenList.forEach((sc, localIdx)=>{
-    const card = document.createElement('div'); card.className='card';
-    const img = document.createElement('img'); img.className='thumb'; img.src = sc.images[0];
-    const overlay = document.createElement('div'); overlay.className='overlay';
-    overlay.innerHTML = `<div class="title">${sc.title}</div><div class="short">${sc.short}</div>`;
-    card.appendChild(img); card.appendChild(overlay);
-    card.addEventListener('click', ()=> {
-      if(window.innerWidth <= 900 && !card.classList.contains('show-overlay')){
-        card.classList.add('show-overlay'); setTimeout(()=> card.classList.remove('show-overlay'), 3500); return;
-      }
-      openDetail(localIdx);
-    });
-    grid.appendChild(card);
-  });
-}
-
-function openDetail(localIdx){
-  currentScenarioIndex = localIdx; slideIndex = 0;
-  currentGlobalIndex = chosenListIndices[localIdx];
-  const sc = chosenList[localIdx];
-  detailTitle.textContent = sc.title;
-  detailCaption.textContent = sc.caption;
-  detailImg.src = sc.images[slideIndex];
-  renderPager(sc.images.length);
-  mainView.style.display='none'; detailView.classList.add('active'); startSlideshow(); window.scrollTo({top:0,behavior:'smooth'});
-}
-
-function backToMain(){ stopSlideshow(); detailView.classList.remove('active'); mainView.style.display=''; }
-
-function renderPager(len){ pager.innerHTML=''; for(let i=0;i<len;i++){ const d=document.createElement('div'); d.className='dot'+(i===slideIndex?' active':''); pager.appendChild(d);} }
-function nextSlide(){ const sc = chosenList[currentScenarioIndex]; slideIndex = (slideIndex+1)%sc.images.length; detailImg.src = sc.images[slideIndex]; renderPager(sc.images.length); }
-function prevSlide(){ const sc = chosenList[currentScenarioIndex]; slideIndex = (slideIndex-1+sc.images.length)%sc.images.length; detailImg.src = sc.images[slideIndex]; renderPager(sc.images.length); }
-function startSlideshow(){ stopSlideshow(); slideshowTimer = setInterval(nextSlide, 5000); }
-function stopSlideshow(){ if(slideshowTimer){ clearInterval(slideshowTimer); slideshowTimer=null; } }
-
-document.getElementById('detailBack').addEventListener('click', backToMain);
-document.getElementById('prevBtn').addEventListener('click', ()=>{ stopSlideshow(); prevSlide(); startSlideshow(); });
-document.getElementById('nextBtn').addEventListener('click', ()=>{ stopSlideshow(); nextSlide(); startSlideshow(); });
-
-/* RENT: минимальный payload (только индекс). Логируем и закрываем WebApp */
-document.getElementById('rentBtn').addEventListener('click', ()=>{
-  const payloadObj = { action: "rent", scenario_idx: currentGlobalIndex };
-  const payloadStr = JSON.stringify(payloadObj);
-  console.log("rent payload:", payloadStr);
-
+// Кнопка отправки тестового payload в бот
+document.getElementById('sendTest').addEventListener('click', ()=>{
+  const payload = JSON.stringify({ action: "rent", scenario_idx: 1 });
+  update('Попытка отправить: ' + payload);
   if(window.Telegram && Telegram.WebApp && typeof Telegram.WebApp.sendData === 'function'){
     try{
-      Telegram.WebApp.sendData(payloadStr);
-      detailTitle.textContent = "✅ Сценарий выбран. Закройте приложение.";
-      setTimeout(()=> { try{ Telegram.WebApp.close(); } catch(e){ console.warn("close failed", e);} }, 150);
-    } catch(e){
-      console.error("sendData error", e);
-      detailTitle.textContent = "Ошибка отправки данных. Попробуйте снова.";
+      Telegram.WebApp.sendData(payload);
+      update('sendData вызван — закрою WebApp через 150ms');
+      setTimeout(()=>{ try{ Telegram.WebApp.close(); }catch(e){ update('close error: '+e.message)} },150);
+    }catch(e){
+      update('Ошибка при sendData: ' + e.message);
     }
   } else {
-    console.log("Telegram.WebApp.sendData not available — open inside Telegram client.");
-    detailTitle.textContent = "Откройте это приложение в Telegram (не в браузере).";
+    update('sendData не доступен. Откройте приложение ВНУТРИ Telegram именно через кнопку у бота.');
   }
 });
-
-if(window.Telegram && Telegram.WebApp){ try{ Telegram.WebApp.expand(); }catch(e){} try{ Telegram.WebApp.MainButton.hide(); }catch(e){} }
-
-renderMain();
 </script>
 </body>
 </html>
