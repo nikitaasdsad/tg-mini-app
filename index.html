@@ -194,7 +194,26 @@ const ALL_SCENARIOS = [
       "11.jpg",
       "12.jpg",
       "13.jpg"
-  ]},
+  ]},   { title: "Вдова", short: "Хладнокровная убийца на крыше, где всё решает одно движение.", caption: "Она смертоносна, но почему-то не спешит убить тебя. Готов рискнуть?", images:[
+    "51.jpg",
+    "52.jpg",
+    "53.jpg"
+]},
+{ title: "Лана", short: "Нимфоманка, которой всегда мало — и она это не скрывает.", caption: "Она играет словами и желаниями. Попробуешь ли выдержать её темп?", images:[
+    "61.jpg",
+    "62.jpg",
+    "63.jpg"
+]},
+{ title: "Лара", short: "Расхитительница гробниц, с которой вы застряли в обвалившейся пещере.", caption: "Она сильная, смелая, но теперь тоже в ловушке. Останетесь ли вы союзниками?", images:[
+    "71.jpg",
+    "72.jpg",
+    "73.jpg"
+]},
+{ title: "Макима", short: "Опасная властная женщина, закрывшая тебя в клетке.", caption: "Она ведёт допрос, но её игра куда глубже, чем просто вопросы.", images:[
+    "81.jpg",
+    "82.jpg",
+    "83.jpg"
+]},
 ];
 /* ========================= */
 
@@ -235,7 +254,7 @@ function pickRandomIndices(arrLength, n){
 
 function randSuffix(){
   const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  let s=''; for(let i=0;i<4;i++) s += chars[Math.floor(Math.random()*chars.length)];
+  let s=''; for(let i=0;i<8;i++) s += chars[Math.floor(Math.random()*chars.length)];
   return s;
 }
 function codeForIndex(idx){
@@ -246,7 +265,7 @@ function codeForIndex(idx){
 /* Render main */
 function renderMain(){
   grid.innerHTML = '';
-  const take = Math.min(4, ALL_SCENARIOS.length);
+  const take = Math.min(8, ALL_SCENARIOS.length);
   chosenListIndices = pickRandomIndices(ALL_SCENARIOS.length, take);
   chosenList = chosenListIndices.map(i => ALL_SCENARIOS[i]);
 
